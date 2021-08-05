@@ -1,0 +1,43 @@
+#Setup GCP Project
+steps:
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args: ['gcloud', 'config', 'set', 'project', 'searce-playground']
+
+- name: 'gcr.io/cloud-builders/docker'
+  id: Build
+  args:
+  - 'build'
+  - '-t'
+  - 'gcr.io/$PROJECT_ID/test-worker:$COMMIT_SHA'
+  - '.'
+# This step pushes the image to Container Registry
+# The PROJECT_ID and SHORT_SHA variables are automatically
+# replaced by Cloud Build.
+- name: 'gcr.io/cloud-builders/docker'
+  id: Push
+  args:
+  - 'push'
+  - 'gcr.io/$PROJECT_ID/test-worker:$COMMIT_SHA'
+# # This step generates the new manifest
+# - name: 'gcr.io/cloud-builders/gcloud'
+#   id: Generate manifest
+#   entrypoint: /bin/sh
+#   args:
+#   - '-c'
+#   - |
+#      sed "s/GOOGLE_CLOUD_PROJECT/${PROJECT_ID}/g" test-worker-deployment.yaml.tpl | \
+#      sed "s/COMMIT_SHA/${COMMIT_SHA}/g" > test-worker-deployment.yaml
+# # This step deploys the new version of our container image
+# - name: 'gcr.io/cloud-builders/kubectl'
+#   id: Deploy
+#   args:
+#   - 'apply'
+#   - '-f'
+#   - 'test-worker-deployment.yaml'
+#   env:
+#   - 'CLOUDSDK_COMPUTE_REGION=us-west1'
+#   - 'CLOUDSDK_CONTAINER_CLUSTER='
+
+options:
+  pool:
+    name: 'projects/searce-playground/locations/us-central1/workerPools/harshal-test'
